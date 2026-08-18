@@ -1,9 +1,23 @@
+from pathlib import Path
+
 import pandas as pd
 
-url = "https://www.bcra.gob.ar/archivos/Pdfs/PublicacionesEstadisticas/com3500.xls"
+
+carpeta_proyecto = Path(__file__).resolve().parent
+
+archivo = (
+    carpeta_proyecto
+    / "data"
+    / "raw"
+    / "tipo_cambio_bcra.xls"
+)
+
+
+
+
 
 datos = pd.read_excel(
-    url,
+    archivo,
     sheet_name="Serie de TCNPM",
     usecols="B:C",
     skiprows=1
@@ -33,3 +47,5 @@ datos = datos.dropna(
 )
 
 datos = datos.sort_values("fecha")
+
+
