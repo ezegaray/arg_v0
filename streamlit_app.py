@@ -1,147 +1,111 @@
 import streamlit as st
-import plotly.express as px
 
-from Indicadores.poder_compra_usd import cargar_poder_compra_usd
-from Fuentes.bcra import cargar_bcra
-from Fuentes.inflacion import cargar_inflacion
-
-
-# --------------------------------------------------
-# Carga de datos
-# --------------------------------------------------
-
-@st.cache_data
-def obtener_bcra():
-    return cargar_bcra()
+from secciones import poder_compra
+from secciones import tipo_cambio
+from secciones import inflacion
+from secciones import ahorro_inversion
 
 
-@st.cache_data
-def obtener_inflacion():
-    return cargar_inflacion()
-
-
-tc = obtener_bcra()
-inflacion = obtener_inflacion()
-
-@st.cache_data
-def obtener_poder_compra_usd():
-    return cargar_poder_compra_usd()
-
-poder_compra_usd = obtener_poder_compra_usd()
-
-# --------------------------------------------------
-# Encabezado
-# --------------------------------------------------
-
-st.title("Tablero interactivo de indicadores económicos")
-st.write("v1")
-
-
-# --------------------------------------------------
-# Tipo de cambio
-# --------------------------------------------------
-
-st.subheader("TC - A3500")
-
-fig_tc = px.line(
-    tc,
-    x="fecha",
-    y="tipo_cambio",
-)
-
-fig_tc.update_layout(
-    xaxis_title="Fecha",
-    yaxis_title="Pesos por dólar",
-)
-
-st.plotly_chart(
-    fig_tc,
-    width="stretch",
-    config={
-        "displaylogo": False,
-        "displayModeBar": True,
-    },
+st.set_page_config(
+    page_title="Coyuntura Argentina - Tablero web interactivo",
+    layout="wide",
 )
 
 
-# --------------------------------------------------
-# Inflación
-# --------------------------------------------------
+## NAVEGACION 
+#############
 
-st.subheader("IPC - Indec")
+secciones = [
+    "Poder de compra",
+    "Tipo de cambio",
+    "Inflación",
+    "Ahorro e inversión",
+]
 
-fecha_min = inflacion["fecha"].min().date()
-fecha_max = inflacion["fecha"].max().date()
-
-rango_fechas = st.date_input(
-    "Período",
-    value=(fecha_min, fecha_max),
-    min_value=fecha_min,
-    max_value=fecha_max,
+pagina_url = st.query_params.get(
+    "seccion",
+    "Portada",
 )
 
+if pagina_url != "Portada" and pagina_url not in secciones:
+    pagina_url = "Portada"
 
-if len(rango_fechas) == 2:
-    desde, hasta = rango_fechas
 
-    inflacion_filtrada = inflacion[
-        (inflacion["fecha"].dt.date >= desde)
-        & (inflacion["fecha"].dt.date <= hasta)
-    ].copy()
+st.sidebar.title("Reporte económico")
+
+if st.sidebar.button("🏠 Inicio", use_container_width=True):
+    st.query_params["seccion"] = "Portada"
+    st.rerun()
+
+
+st.sidebar.markdown("### Secciones")
+
+if pagina_url == "Portada":
+    indice_inicial = None
 else:
-    inflacion_filtrada = inflacion.copy()
+    indice_inicial = secciones.index(pagina_url)
 
 
-fig = px.line(
-    inflacion_filtrada,
-    x="fecha",
-    y="Indice_IPC",
-)
-
-fig.update_layout(
-    xaxis_title="Fecha",
-    yaxis_title="Índice",
-)
-
-
-st.plotly_chart(
-    fig,
-    width="stretch",
-    config={
-        "displaylogo": False,
-        "displayModeBar": True,
-    },
+seccion = st.sidebar.radio(
+    "Secciones",
+    secciones,
+    index=indice_inicial,
+    label_visibility="collapsed",
 )
 
 
 
-# --------------------------------------------------
-# Poder de compra local de USD 100
-# --------------------------------------------------
+## SECCIONES? 
+#############
 
-st.subheader("Poder de compra local de USD 100")
 
-fig_pc = px.line(
-    poder_compra_usd,
-    x="fecha",
-    y="poder_compra_usd",
-)
+# Si el usuario cambia de sección desde la barra lateral,
+# actualizamos también la URL.
+if pagina_url == "Portada":
 
-fig_pc.update_layout(
-    xaxis_title="Fecha",
-    yaxis_title="Índice (dic-2016 = 100)",
-)
+    st.title("Coyuntura Argentina")
 
-st.plotly_chart(
-    fig_pc,
-    width="stretch",
-    config={
-        "displaylogo": False,
-        "displayModeBar": True,
-    },
-)
+    st.write(
+        """
+        Tablero web interactivo para explorar la evolución de distintas
+        variables de la economía argentina.
+        """
+    )
 
-st.caption(
-    "Índice del poder de compra local de USD 100 al tipo de cambio oficial. "
-    "Diciembre de 2016 = 100."
-)
+    st.subheader("Secciones")
+
+    st.markdown(
+        """
+        - **Poder de compra:** evolución del valor relativo del dólar frente
+          al nivel de precios.
+        - **Tipo de cambio:** series históricas del mercado cambiario.
+        - **Inflación:** evolución de precios e indicadores relacionados.
+        - **Ahorro e inversión:** comparación de alternativas de inversión
+          y conservación del poder adquisitivo.
+        """
+    )
+
+    # Si desde Inicio el usuario elige una sección,
+    # actualizamos la URL y navegamos hacia ella.
+    if seccion is not None:
+        st.query_params["seccion"] = seccion
+        st.rerun()
+
+
+else:
+
+    if seccion != pagina_url:
+        st.query_params["seccion"] = seccion
+        st.rerun()
+
+    if seccion == "Poder de compra":
+        poder_compra.mostrar()
+
+    elif seccion == "Tipo de cambio":
+        tipo_cambio.mostrar()
+
+    elif seccion == "Inflación":
+        inflacion.mostrar()
+
+    elif seccion == "Ahorro e inversión":
+        ahorro_inversion.mostrar()
