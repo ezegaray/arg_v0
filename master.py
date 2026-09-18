@@ -1,10 +1,15 @@
 # master.py
 
-from actualizar_datos import actualizar_bcra, actualizar_ipc
+from actualizar_datos import (
+    actualizar_bcra,
+    actualizar_ipc,
+    actualizar_tas1,
+)
 
 
 BCRA = False
-IPC = True
+IPC = False
+TAS1 = False
 
 
 if BCRA:
@@ -12,3 +17,6 @@ if BCRA:
 
 if IPC:
     actualizar_ipc()
+
+if TAS1:
+    actualizar_tas1()

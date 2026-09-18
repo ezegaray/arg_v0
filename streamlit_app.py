@@ -4,6 +4,7 @@ from secciones import poder_compra
 from secciones import tipo_cambio
 from secciones import inflacion
 from secciones import ahorro_inversion
+from secciones import tasas_interes
 
 
 st.set_page_config(
@@ -20,6 +21,7 @@ secciones = [
     "Tipo de cambio",
     "Inflación",
     "Ahorro e inversión",
+    "Tasa de interés",
 ]
 
 pagina_url = st.query_params.get(
@@ -109,3 +111,6 @@ else:
 
     elif seccion == "Ahorro e inversión":
         ahorro_inversion.mostrar()
+
+    elif seccion == "Tasa de interés":
+        tasas_interes.mostrar()

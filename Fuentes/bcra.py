@@ -14,7 +14,6 @@ archivo_bcra = (
 
 
 
-
 def cargar_bcra():
     bcra  = pd.read_excel(
         archivo_bcra,
