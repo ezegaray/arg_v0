@@ -1,6 +1,36 @@
 import streamlit as st
+import plotly.graph_objects as go
 
-from Fuentes.indec_ipc import cargar_ipc
+from Fuentes.inflacion import cargar_inflacion
+
+
+def _mostrar_grafico(datos, columna, titulo_eje, tipo="line"):
+    figura = go.Figure()
+    constructor = figura.add_bar if tipo == "bar" else figura.add_scatter
+    parametros = {
+        "x": datos["fecha"],
+        "y": datos[columna],
+        "name": titulo_eje,
+    }
+    if tipo == "line":
+        parametros.update(mode="lines")
+    constructor(**parametros)
+    figura.update_layout(
+        xaxis_title="Fecha",
+        yaxis_title=titulo_eje,
+        hovermode="x unified",
+        dragmode="zoom",
+        margin={"l": 20, "r": 20, "t": 20, "b": 20},
+    )
+    st.plotly_chart(
+        figura,
+        use_container_width=True,
+        config={
+            "displaylogo": False,
+            "scrollZoom": True,
+            "displayModeBar": True,
+        },
+    )
 
 
 def mostrar():
@@ -16,19 +46,13 @@ def mostrar():
         horizontal=True,
     )
 
-    ipc = cargar_ipc()
+    ipc = cargar_inflacion()
 
     if vista == "Nivel del IPC":
 
         st.subheader("Índice de Precios al Consumidor - Argentina")
 
-        st.line_chart(
-            ipc,
-            x="fecha",
-            y="Indice_IPC",
-            x_label="Fecha",
-            y_label="Índice",
-        )
+        _mostrar_grafico(ipc, "Indice_IPC", "Índice")
 
         st.caption(
             "💡 Podés seleccionar una parte del gráfico "
@@ -51,12 +75,11 @@ def mostrar():
 
         st.subheader("Inflación mensual - Argentina")
 
-        st.line_chart(
+        _mostrar_grafico(
             ipc,
-            x="fecha",
-            y="inflacion_mensual",
-            x_label="Fecha",
-            y_label="Variación mensual (%)",
+            "inflacion_mensual",
+            "Variación mensual (%)",
+            tipo="bar",
         )
 
         st.caption(

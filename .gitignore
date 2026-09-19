@@ -1,5 +1,6 @@
 .streamlit/secrets.toml
 data/raw/tas1_ser.txt
+data/raw/dolar_blue_ambito.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
