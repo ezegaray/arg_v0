@@ -5,49 +5,24 @@ import pandas as pd
 
 carpeta_proyecto = Path(__file__).resolve().parent.parent
 
-archivo_bcra = (
-    carpeta_proyecto
-    / "data"
-    / "raw"
-    / "tipo_cambio_bcra.xls"
-)
+archivo_procesado = carpeta_proyecto / "data" / "processed" / "tipo_cambio_bcra.csv"
 
 
 
 def cargar_bcra():
-    bcra  = pd.read_excel(
-        archivo_bcra,
-        sheet_name="Serie de TCNPM",
-        usecols="B:C",
-        skiprows=1
+    if not archivo_procesado.exists():
+        raise FileNotFoundError(
+            "Falta data/processed/tipo_cambio_bcra.csv. "
+            "Primero ejecutá actualizar_bcra()."
+        )
+
+    bcra = pd.read_csv(
+        archivo_procesado,
+        parse_dates=["fecha", "fecha_observacion"],
+        dtype={"tipo_cambio": "float64"},
     )
-    bcra  = bcra.dropna()
-
-    bcra  = bcra.rename(
-        columns={
-            "Mes": "fecha",
-            "Tipo de cambio nominal promedio mensual": "tipo_cambio"
-        }
-    )
-
-
-    bcra ["fecha"] = pd.to_datetime(
-        bcra ["fecha"],
-        errors="coerce",
-    )
-
-    bcra ["tipo_cambio"] = pd.to_numeric(
-        bcra ["tipo_cambio"],
-        errors="coerce",
-    )
-
-    bcra  = bcra .dropna(
-        subset=["fecha", "tipo_cambio"],
-    )
-
-    bcra  = bcra .sort_values("fecha")
-
-    return bcra
+    bcra["mes"] = pd.PeriodIndex(bcra["mes"], freq="M")
+    return bcra.sort_values("mes").reset_index(drop=True)
 
 
 if __name__ == "__main__":

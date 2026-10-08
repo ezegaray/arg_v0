@@ -17,10 +17,10 @@ st.set_page_config(
 #############
 
 secciones = [
-    "Poder de compra",
-    "Tipo de cambio",
-    "Inflación",
     "Ahorro e inversión",
+    "Poder de compra",
+    "Inflación",
+    "Tipo de cambio",
     "Tasa de interés",
 ]
 
@@ -42,18 +42,23 @@ if st.sidebar.button("🏠 Inicio", use_container_width=True):
 
 st.sidebar.markdown("### Secciones")
 
-if pagina_url == "Portada":
-    indice_inicial = None
-else:
-    indice_inicial = secciones.index(pagina_url)
+grupos_secciones = {
+    "Análisis": ["Ahorro e inversión", "Poder de compra"],
+    "Indicadores / series": ["Inflación", "Tipo de cambio", "Tasa de interés"],
+}
+for grupo, opciones in grupos_secciones.items():
+    st.sidebar.markdown(f"### {grupo}")
+    for opcion in opciones:
+        if st.sidebar.button(
+            opcion,
+            key=f"navegacion_{opcion}",
+            type="primary" if pagina_url == opcion else "secondary",
+            use_container_width=True,
+        ):
+            st.query_params["seccion"] = opcion
+            st.rerun()
 
-
-seccion = st.sidebar.radio(
-    "Secciones",
-    secciones,
-    index=indice_inicial,
-    label_visibility="collapsed",
-)
+seccion = None if pagina_url == "Portada" else pagina_url
 
 
 
@@ -78,12 +83,18 @@ if pagina_url == "Portada":
 
     st.markdown(
         """
+        **Análisis**
+
+        - **Ahorro e inversión:** análisis de alternativas de inversión
+          y conservación del poder adquisitivo.
         - **Poder de compra:** evolución del valor relativo del dólar frente
           al nivel de precios.
-        - **Tipo de cambio:** series históricas del mercado cambiario.
+
+        **Indicadores / Series**
+
         - **Inflación:** evolución de precios e indicadores relacionados.
-        - **Ahorro e inversión:** comparación de alternativas de inversión
-          y conservación del poder adquisitivo.
+        - **Tipo de cambio:** series históricas del mercado cambiario.
+        - **Tasa de interés:** tasas de depósitos a plazo fijo.
         """
     )
 

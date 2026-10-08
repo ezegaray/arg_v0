@@ -1,10 +1,13 @@
 import streamlit as st
 import plotly.graph_objects as go
+import pandas as pd
 
 from Fuentes.tipo_cambio import cargar_caso_a
+from secciones.controles_periodo import mostrar_controles_periodo
+from secciones.marcas_presidenciales import agregar_marcas_presidenciales
 
 
-def _mostrar_grafico(datos):
+def _mostrar_grafico(datos, fecha_inicio, fecha_fin, escala):
     figura = go.Figure()
     for columna, nombre in [
         ("oficial", "Oficial"),
@@ -25,8 +28,14 @@ def _mostrar_grafico(datos):
         yaxis_title="Pesos por dólar",
         hovermode="x unified",
         dragmode="zoom",
+        xaxis_range=[
+            fecha_inicio.isoformat(),
+            (fecha_fin + pd.offsets.MonthEnd(1)).isoformat(),
+        ],
         margin={"l": 20, "r": 20, "t": 20, "b": 20},
     )
+    figura.update_yaxes(type=escala)
+    agregar_marcas_presidenciales(figura)
     st.plotly_chart(
         figura,
         use_container_width=True,
@@ -45,8 +54,44 @@ def mostrar():
     st.subheader("Tipo de cambio oficial, blue y Caso A")
 
     datos = cargar_caso_a()
+    columnas_series = ["oficial", "blue", "caso_a"]
+    fechas_disponibles = datos.loc[
+        datos[columnas_series].notna().any(axis=1),
+        "fecha",
+    ]
+    fecha_minima = fechas_disponibles.min()
+    fecha_maxima = fechas_disponibles.max()
+    st.caption(
+        f"Datos disponibles: {fecha_minima:%m/%Y} – {fecha_maxima:%m/%Y}"
+    )
 
-    _mostrar_grafico(datos)
+    fecha_inicio, fecha_fin = mostrar_controles_periodo(
+        fechas_disponibles,
+        key="tipo_cambio",
+        ultimos_meses=60,
+    )
+    periodo_inicio = fecha_inicio.to_period("M")
+    periodo_fin = fecha_fin.to_period("M")
+    seleccion = datos[
+        datos["fecha"].dt.to_period("M").between(periodo_inicio, periodo_fin)
+    ]
+    st.caption(
+        f"Período seleccionado: {fecha_inicio:%m/%Y} – {fecha_fin:%m/%Y}"
+    )
+    escala = st.radio(
+        "Escala del eje Y",
+        ["Logarítmica", "Lineal"],
+        horizontal=True,
+        index=0,
+        key="tipo_cambio_escala",
+    )
+
+    _mostrar_grafico(
+        seleccion,
+        fecha_inicio,
+        fecha_fin,
+        "log" if escala == "Logarítmica" else "linear",
+    )
 
     st.caption(
         "💡 Usá la barra del gráfico para ampliar, desplazar, restablecer "

@@ -1,6 +1,8 @@
 import streamlit as st
+import plotly.graph_objects as go
 
 from Indicadores.poder_compra_usd import cargar_poder_compra_usd
+from secciones.marcas_presidenciales import agregar_marcas_presidenciales
 
 
 def mostrar():
@@ -10,12 +12,26 @@ def mostrar():
 
     datos = cargar_poder_compra_usd()
 
-    st.line_chart(
-        datos,
-        x="fecha",
-        y="poder_compra_usd",
-        x_label="Fecha",
-        y_label="Índice (dic. 2016 = 100)",
+    figura = go.Figure(
+        go.Scatter(
+            x=datos["fecha"],
+            y=datos["poder_compra_usd"],
+            mode="lines",
+            name="Poder de compra del dólar",
+        )
+    )
+    figura.update_layout(
+        xaxis_title="Fecha",
+        yaxis_title="Índice (dic. 2016 = 100)",
+        hovermode="x unified",
+        dragmode="zoom",
+        margin={"l": 20, "r": 20, "t": 20, "b": 20},
+    )
+    agregar_marcas_presidenciales(figura)
+    st.plotly_chart(
+        figura,
+        use_container_width=True,
+        config={"displaylogo": False, "scrollZoom": True, "displayModeBar": True},
     )
 
     st.caption(

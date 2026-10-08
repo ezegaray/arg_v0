@@ -12,10 +12,9 @@ FECHA_CORTE_4 = pd.Timestamp("2025-04-01")
 
 def _cargar_oficial_mensual():
     oficial = cargar_bcra().copy()
-    oficial["mes"] = oficial["fecha"].dt.to_period("M")
     oficial = oficial.rename(
         columns={
-            "fecha": "fecha_oficial",
+            "fecha_observacion": "fecha_oficial",
             "tipo_cambio": "oficial",
         }
     )

@@ -7,8 +7,9 @@ requires-python = ">=3.14"
 dependencies = [
     "streamlit>=1.60.0",
     "pandas",
-    "xlrd",
     "plotly>=7.0.0",
+    "matplotlib",
+    "yfinance",
 ]
 
 [tool.uv]

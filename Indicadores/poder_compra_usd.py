@@ -4,23 +4,30 @@ from Fuentes.bcra import cargar_bcra
 from Fuentes.inflacion import cargar_inflacion
 
 
+FECHA_MINIMA_ANALITICA = pd.Timestamp("1996-10-01")
+FECHA_INICIO_SERIE = pd.Timestamp("2002-03-01")
+
+
 def cargar_poder_compra_usd():
     bcra = cargar_bcra()
     inflacion = cargar_inflacion()
+    inflacion["mes"] = inflacion["fecha"].dt.to_period("M")
 
     datos = pd.merge(
         bcra,
         inflacion[
             [
-                "fecha",
+                "mes",
                 "Indice_IPC",
             ]
         ],
-        on="fecha",
+        on="mes",
         how="inner",
     )
 
     datos = datos.sort_values("fecha")
+    fecha_inicio = max(FECHA_MINIMA_ANALITICA, FECHA_INICIO_SERIE)
+    datos = datos[datos["fecha"] >= fecha_inicio].copy()
 
     # Diciembre de 2016 = 100
     fecha_base = pd.Timestamp("2016-12-01")

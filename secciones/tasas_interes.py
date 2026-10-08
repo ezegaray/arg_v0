@@ -1,6 +1,8 @@
 import streamlit as st
+import plotly.graph_objects as go
 
 from Fuentes.tasas_interes import cargar_tasa
+from secciones.marcas_presidenciales import agregar_marcas_presidenciales
 
 
 def mostrar():
@@ -13,10 +15,24 @@ def mostrar():
         st.warning(str(error))
         return
 
-    st.line_chart(
-        datos,
-        x="fecha",
-        y="tasa",
-        x_label="Fecha",
-        y_label="Tasa nominal anual (%)",
+    figura = go.Figure(
+        go.Scatter(
+            x=datos["fecha"],
+            y=datos["tasa"],
+            mode="lines",
+            name="Tasa de depósitos a plazo fijo",
+        )
+    )
+    figura.update_layout(
+        xaxis_title="Fecha",
+        yaxis_title="Tasa nominal anual (%)",
+        hovermode="x unified",
+        dragmode="zoom",
+        margin={"l": 20, "r": 20, "t": 20, "b": 20},
+    )
+    agregar_marcas_presidenciales(figura)
+    st.plotly_chart(
+        figura,
+        use_container_width=True,
+        config={"displaylogo": False, "scrollZoom": True, "displayModeBar": True},
     )

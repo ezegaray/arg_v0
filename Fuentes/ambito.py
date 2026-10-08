@@ -9,10 +9,15 @@ import pandas as pd
 carpeta_proyecto = Path(__file__).resolve().parent.parent
 archivo_raw = carpeta_proyecto / "data" / "raw" / "dolar_blue_ambito.json"
 archivo_procesado = carpeta_proyecto / "data" / "dolar_blue.csv"
+archivo_raw_ccl = carpeta_proyecto / "data" / "raw" / "dolar_ccl_ambito.json"
+archivo_procesado_ccl = (
+    carpeta_proyecto / "data" / "processed" / "dolar_ccl_mensual.csv"
+)
 
 URL_BASE = "https://mercados.ambito.com/dolar/informal/historico-general"
 FECHA_INICIAL = date(2002, 1, 1)
 COLUMNAS = ["fecha", "compra", "venta"]
+URL_CCL = "https://mercados.ambito.com/dolarrava/cl/grafico"
 
 
 def descargar_datos(desde, hasta=None):
@@ -46,9 +51,9 @@ def _leer_raw():
     return datos if datos and datos[0] == ["Fecha", "Compra", "Venta"] else None
 
 
-def _guardar_raw(datos):
-    archivo_raw.parent.mkdir(parents=True, exist_ok=True)
-    with archivo_raw.open("w", encoding="utf-8") as archivo:
+def _guardar_raw(datos, destino=archivo_raw):
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    with destino.open("w", encoding="utf-8") as archivo:
         json.dump(datos, archivo, ensure_ascii=False, indent=2)
 
 
@@ -126,3 +131,57 @@ def construir_serie_mensual(datos):
     mensual = datos.assign(mes=datos["fecha"].dt.to_period("M"))
     mensual = mensual.groupby("mes", as_index=False).tail(1)
     return mensual.sort_values("mes").reset_index(drop=True)
+
+
+def descargar_datos_ccl(desde=date(1900, 1, 1), hasta=None):
+    """Descarga el histórico diario de cierre del dólar CCL de Ámbito."""
+    hasta = hasta or date.today()
+    url = f"{URL_CCL}/{desde:%Y-%m-%d}/{hasta:%Y-%m-%d}"
+    solicitud = Request(
+        url,
+        headers={
+            "User-Agent": "Mozilla/5.0",
+            "Referer": "https://www.ambito.com/contenidos/dolar-cl.html",
+        },
+    )
+
+    with urlopen(solicitud, timeout=60) as respuesta:
+        datos = json.load(respuesta)
+
+    if not datos or datos[0] != ["fecha", "DOLAR CCL"]:
+        raise ValueError("La respuesta de Ámbito no tiene el formato CCL esperado.")
+
+    return datos
+
+
+def limpiar_datos_ccl(datos):
+    """Convierte la respuesta CCL en una serie diaria limpia."""
+    datos = pd.DataFrame(datos[1:], columns=["fecha", "cierre"]).copy()
+    datos["fecha"] = pd.to_datetime(
+        datos["fecha"],
+        format="%d/%m/%Y",
+        errors="coerce",
+    )
+    datos["cierre"] = pd.to_numeric(datos["cierre"], errors="coerce")
+    datos = datos.dropna(subset=["fecha", "cierre"])
+    return (
+        datos.drop_duplicates(subset="fecha", keep="last")
+        .sort_values("fecha")
+        .reset_index(drop=True)
+    )
+
+
+def actualizar_dolar_ccl():
+    """Descarga CCL, mensualiza con el último dato del mes y guarda el CSV."""
+    datos_raw = descargar_datos_ccl()
+    _guardar_raw(datos_raw, archivo_raw_ccl)
+    datos_diarios = limpiar_datos_ccl(datos_raw)
+    datos_mensuales = construir_serie_mensual(datos_diarios)
+    datos_mensuales = datos_mensuales[["fecha", "cierre"]]
+    archivo_procesado_ccl.parent.mkdir(parents=True, exist_ok=True)
+    datos_mensuales.to_csv(
+        archivo_procesado_ccl,
+        index=False,
+        date_format="%Y-%m-%d",
+    )
+    return datos_diarios, datos_mensuales
