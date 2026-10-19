@@ -5,11 +5,35 @@ import yfinance as yf
 
 
 CARPETA_PROCESSED = Path(__file__).resolve().parent.parent / "data" / "processed"
+ARCHIVO_SP500_MENSUAL = CARPETA_PROCESSED / "sp500_mensual.csv"
 
 SERIES = {
     "^GSPC": "sp500_mensual.csv",
     "^MERV": "merval_mensual.csv",
 }
+
+
+def cargar_sp500_mensual():
+    if not ARCHIVO_SP500_MENSUAL.exists():
+        raise FileNotFoundError(
+            "Falta data/processed/sp500_mensual.csv. "
+            "Primero ejecutá actualizar_bolsas()."
+        )
+
+    datos = pd.read_csv(
+        ARCHIVO_SP500_MENSUAL,
+        parse_dates=["fecha"],
+        dtype={"cierre": "float64"},
+    )
+    datos = (
+        datos.dropna(subset=["fecha", "cierre"])
+        .drop_duplicates(subset=["fecha"], keep="last")
+        .sort_values("fecha")
+        .reset_index(drop=True)
+    )
+    if datos.empty:
+        raise ValueError("La serie mensual del S&P 500 no contiene observaciones.")
+    return datos
 
 
 def descargar_serie(ticker):

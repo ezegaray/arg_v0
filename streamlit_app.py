@@ -5,6 +5,7 @@ from secciones import tipo_cambio
 from secciones import inflacion
 from secciones import ahorro_inversion
 from secciones import tasas_interes
+from secciones import sp500
 
 
 st.set_page_config(
@@ -16,12 +17,19 @@ st.set_page_config(
 ## NAVEGACION 
 #############
 
+grupos_secciones = {
+    "Análisis": ["Ahorro e inversión", "Poder de compra"],
+    "Indicadores / series": [
+        "Inflación",
+        "Tipo de cambio",
+        "Tasa de interés",
+        "S&P 500 (USD)",
+    ],
+}
 secciones = [
-    "Ahorro e inversión",
-    "Poder de compra",
-    "Inflación",
-    "Tipo de cambio",
-    "Tasa de interés",
+    opcion
+    for opciones in grupos_secciones.values()
+    for opcion in opciones
 ]
 
 pagina_url = st.query_params.get(
@@ -42,10 +50,6 @@ if st.sidebar.button("🏠 Inicio", use_container_width=True):
 
 st.sidebar.markdown("### Secciones")
 
-grupos_secciones = {
-    "Análisis": ["Ahorro e inversión", "Poder de compra"],
-    "Indicadores / series": ["Inflación", "Tipo de cambio", "Tasa de interés"],
-}
 for grupo, opciones in grupos_secciones.items():
     st.sidebar.markdown(f"### {grupo}")
     for opcion in opciones:
@@ -95,6 +99,8 @@ if pagina_url == "Portada":
         - **Inflación:** evolución de precios e indicadores relacionados.
         - **Tipo de cambio:** series históricas del mercado cambiario.
         - **Tasa de interés:** tasas de depósitos a plazo fijo.
+        - **S&P 500 (USD):** nivel mensual del índice expresado en dólares
+          corrientes.
         """
     )
 
@@ -125,3 +131,6 @@ else:
 
     elif seccion == "Tasa de interés":
         tasas_interes.mostrar()
+
+    elif seccion == "S&P 500 (USD)":
+        sp500.mostrar()
