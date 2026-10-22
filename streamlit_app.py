@@ -5,6 +5,7 @@ from secciones import tipo_cambio
 from secciones import inflacion
 from secciones import ahorro_inversion
 from secciones import comparativas
+from secciones import distribucion_rendimientos
 from secciones import tasas_interes
 from secciones import sp500
 
@@ -19,7 +20,12 @@ st.set_page_config(
 #############
 
 grupos_secciones = {
-    "Análisis": ["Ahorro e inversión", "Comparativas", "Poder de compra"],
+    "Análisis": [
+        "Ahorro e inversión",
+        "Comparativas",
+        "Distribución de rendimientos",
+        "Poder de compra",
+    ],
     "Indicadores / series": [
         "Inflación",
         "Tipo de cambio",
@@ -94,6 +100,8 @@ if pagina_url == "Portada":
           y conservación del poder adquisitivo.
         - **Comparativas:** evolución real de los instrumentos desde una
           fecha base común seleccionable.
+        - **Distribución de rendimientos:** comparación de la dispersión de
+          los rendimientos reales por horizonte.
         - **Poder de compra:** evolución del valor relativo del dólar frente
           al nivel de precios.
 
@@ -134,6 +142,9 @@ else:
 
     elif seccion == "Comparativas":
         comparativas.mostrar()
+
+    elif seccion == "Distribución de rendimientos":
+        distribucion_rendimientos.mostrar()
 
     elif seccion == "Tasa de interés":
         tasas_interes.mostrar()
