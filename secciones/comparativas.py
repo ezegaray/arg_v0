@@ -121,9 +121,30 @@ def _construir_grafico_comparativo(series, periodo_base):
 def mostrar():
     st.title("Comparativas")
     st.write(
-        "Compará la evolución real de Dólar, Plazo fijo, Merval y S&P 500 en "
-        "pesos tomando un mes como base común. El gráfico conserva también "
-        "la evolución anterior a esa fecha para dar contexto."
+        """
+Comparar las cuatro alternativas desde una misma base permite observar algo
+que los gráficos individuales ocultan: pequeñas diferencias sostenidas
+durante muchos años pueden producir trayectorias de capital profundamente
+distintas. Al mismo tiempo, elegir una única fecha inicial puede condicionar
+fuertemente esa comparación, porque cada instrumento atravesó ciclos muy
+diferentes.
+
+Por eso, el gráfico permite modificar la fecha en la que todas las
+alternativas toman valor 100. Mover la base no altera los rendimientos de
+cada instrumento, pero sí permite formular distintas preguntas: qué habría
+ocurrido si la comparación hubiera comenzado antes de una crisis, después de
+ella o durante un período de relativa estabilidad. La herramienta hace
+visible hasta qué punto las conclusiones sobre desempeño acumulado dependen
+del momento desde el cual se comienza a medir.
+
+Más que buscar un “ganador” único para todo el período, la comparación
+permite observar que las alternativas presentan perfiles históricos
+diferentes. Algunas mostraron menores oscilaciones pero pérdidas persistentes
+frente a la inflación; otras combinaron una volatilidad mucho mayor con
+períodos prolongados de crecimiento real. El resultado final de una
+inversión dependió tanto del instrumento elegido como del horizonte y del
+momento de entrada.
+"""
     )
 
     rendimientos, _ = _rendimientos_reales()
