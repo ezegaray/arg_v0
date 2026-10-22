@@ -59,7 +59,7 @@ def _construir_series_reales(rendimientos, periodo_base):
         base = nivel_inicial.loc[periodo_base]
         if not np.isfinite(base) or base <= 0:
             raise ValueError(f"No se puede rebasing {nombre} en {periodo_base}.")
-        indice = nivel_inicial.loc[periodo_base:] / base * 100
+        indice = nivel_inicial / base * 100
         indice.loc[periodo_base] = 100.0
         indices[nombre] = indice
 
@@ -93,7 +93,7 @@ def _construir_grafico_comparativo(series, periodo_base):
         annotation_position="top",
     )
     figura.update_layout(
-        title="Evolución real comparada desde la fecha base",
+        title="Evolución real comparada con base móvil",
         xaxis_title="Año",
         yaxis_title="Índice real (fecha base = 100)",
         template="plotly_dark",
@@ -122,7 +122,8 @@ def mostrar():
     st.title("Comparativas")
     st.write(
         "Compará la evolución real de Dólar, Plazo fijo, Merval y S&P 500 en "
-        "pesos desde una misma fecha de entrada."
+        "pesos tomando un mes como base común. El gráfico conserva también "
+        "la evolución anterior a esa fecha para dar contexto."
     )
 
     rendimientos, _ = _rendimientos_reales()
@@ -149,8 +150,8 @@ def mostrar():
         f"{periodos[0].to_timestamp():%m/%Y}–"
         f"{periodos[-1].to_timestamp():%m/%Y}. "
         f"En {periodo_base.to_timestamp():%m/%Y}, todas las series se fijan "
-        "en 100; desde allí "
-        "el índice refleja la evolución del capital en términos reales."
+        "en 100; los valores anteriores muestran la evolución relativa "
+        "previa a esa fecha."
     )
     series = _construir_series_reales(rendimientos, periodo_base)
     st.plotly_chart(
