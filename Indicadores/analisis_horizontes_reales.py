@@ -16,6 +16,9 @@ from Indicadores.rendimientos_ahorro_inversion import construir_rendimientos
 CARPETA_PROYECTO = Path(__file__).resolve().parent.parent
 CARPETA_PROCESSED = CARPETA_PROYECTO / "data" / "processed"
 CARPETA_GRAFICOS = CARPETA_PROYECTO / "data" / "diagnostico_rendimientos_reales"
+ARCHIVO_ESTADISTICAS_RENDIMIENTOS_REALES = (
+    CARPETA_PROCESSED / "estadisticas_rendimientos_reales.csv"
+)
 
 
 def _rendimientos_reales():
@@ -39,6 +42,112 @@ def _rendimientos_reales():
 
 def _filtrar_desde(datos, inicio):
     return datos.loc[datos["periodo"] >= pd.Period(inicio, freq="M")].copy()
+
+
+def construir_estadisticas_rendimientos_reales(inicio="1996-01"):
+    datos, _ = _rendimientos_reales()
+    datos["periodo"] = pd.PeriodIndex(datos["periodo"], freq="M")
+
+    mensual = datos.copy()
+    mensual[list(ALTERNATIVAS)] = mensual[list(ALTERNATIVAS)] * 12
+    tablas = {
+        "Mensual anualizado": _filtrar_desde(mensual, inicio),
+        "12 meses": _filtrar_desde(_tabla_horizonte(datos, 12), inicio),
+        "3 años": _filtrar_desde(_tabla_horizonte(datos, 36, 3), inicio),
+        "5 años": _filtrar_desde(_tabla_horizonte(datos, 60, 5), inicio),
+        "10 años": _filtrar_desde(_tabla_horizonte(datos, 120, 10), inicio),
+    }
+    especificaciones = [
+        ("Mensual anualizado", tablas["Mensual anualizado"], list(ALTERNATIVAS)),
+        ("12 meses", tablas["12 meses"], list(ALTERNATIVAS)),
+    ]
+    especificaciones.extend(
+        (
+            horizonte,
+            tablas[horizonte],
+            [
+                columna
+                for columna in tablas[horizonte]
+                if columna.startswith("cagr_")
+            ],
+        )
+        for horizonte in ("3 años", "5 años", "10 años")
+    )
+    estadisticas = _estadisticas(especificaciones)
+
+    columnas_por_instrumento = {
+        nombre: columna for columna, nombre in ALTERNATIVAS.items()
+    }
+    porcentajes = []
+    for fila in estadisticas.itertuples(index=False):
+        tabla = tablas[fila.horizonte].set_index("periodo")
+        columna = columnas_por_instrumento[fila.alternativa]
+        if fila.horizonte in {"3 años", "5 años", "10 años"}:
+            columna = f"cagr_{columna.removeprefix('rend_')}"
+        valores = tabla[columna].dropna()
+        cantidad = len(valores)
+        porcentajes.append(
+            {
+                "pct_positivos": (valores.gt(0).mean() * 100) if cantidad else float("nan"),
+                "pct_cero": (valores.eq(0).mean() * 100) if cantidad else float("nan"),
+            }
+        )
+    estadisticas = pd.concat(
+        [estadisticas.reset_index(drop=True), pd.DataFrame(porcentajes)],
+        axis=1,
+    )
+    columnas_tasa = [
+        "media",
+        "mediana",
+        "desvio_estandar",
+        "minimo",
+        "maximo",
+    ]
+    estadisticas[columnas_tasa] = estadisticas[columnas_tasa] * 100
+    estadisticas = estadisticas.rename(
+        columns={
+            "alternativa": "instrumento",
+            "fecha_minima": "fecha_inicio",
+            "fecha_maxima": "fecha_fin",
+            "porcentaje_negativo": "pct_negativos",
+        }
+    )
+    estadisticas["instrumento"] = estadisticas["instrumento"].replace(
+        {"Dolar": "Dólar"}
+    )
+    estadisticas["medida"] = estadisticas["horizonte"].map(
+        {
+            "Mensual anualizado": "TNA equivalente lineal",
+            "12 meses": "Rendimiento real móvil a 12 meses",
+            "3 años": "CAGR real anualizado",
+            "5 años": "CAGR real anualizado",
+            "10 años": "CAGR real anualizado",
+        }
+    )
+    columnas_salida = [
+        "instrumento",
+        "horizonte",
+        "medida",
+        "fecha_inicio",
+        "fecha_fin",
+        "observaciones",
+        "media",
+        "mediana",
+        "desvio_estandar",
+        "minimo",
+        "maximo",
+        "pct_positivos",
+        "pct_negativos",
+        "pct_cero",
+    ]
+    return estadisticas[columnas_salida]
+
+
+def guardar_estadisticas_rendimientos_reales(inicio="1996-01"):
+    estadisticas = construir_estadisticas_rendimientos_reales(inicio)
+    CARPETA_PROCESSED.mkdir(parents=True, exist_ok=True)
+    estadisticas.to_csv(ARCHIVO_ESTADISTICAS_RENDIMIENTOS_REALES, index=False)
+    return estadisticas
 
 
 def _graficar_real(horizonte, tabla, columnas, carpeta, sufijo):
@@ -135,6 +244,7 @@ def generar_analisis_reales():
     datos, inflacion = _rendimientos_reales()
     inicio_merval = datos.loc[datos["rend_merval"].notna(), "periodo"].min()
     resultados = {
+        "estadisticas_rendimientos_reales": guardar_estadisticas_rendimientos_reales(),
         "alineacion_ipc": datos[["periodo"]].merge(
             inflacion.reset_index()[["periodo", "inflacion_mensual"]],
             on="periodo",
