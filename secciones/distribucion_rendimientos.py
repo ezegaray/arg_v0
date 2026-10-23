@@ -13,7 +13,9 @@ def mostrar():
     st.title("Distribución de rendimientos")
     st.write(
         """
-Los gráficos temporales permiten identificar cuándo ocurrieron los períodos
+Los gráficos temporales de la sección
+[Ahorro e inversión](?seccion=Ahorro%20e%20inversi%C3%B3n) permiten identificar cuándo
+ocurrieron los períodos
 positivos y negativos, pero dificultan resumir cómo se distribuyeron los
 resultados históricos. Los boxplots complementan esa mirada mostrando, para
 cada horizonte, la mediana, la dispersión y los valores extremos de los
@@ -30,13 +32,8 @@ positivos se vuelven mayoritarios en los horizontes largos de la muestra: a
 diez años fueron positivos aproximadamente el 77% de los períodos del
 Merval y el 65% de los del S&P 500 en pesos.
 
-Los boxplots también ayudan a evitar una interpretación engañosa de los
-gráficos temporales. Las curvas de rendimientos de largo plazo parecen más
-suaves en parte porque las ventanas consecutivas comparten gran cantidad de
-meses entre sí. Por eso, una curva temporal menos oscilante no equivale por
-sí sola a menor riesgo. La distribución de resultados ofrece una perspectiva
-complementaria para observar tanto la variabilidad como la frecuencia
-histórica de ganancias y pérdidas.
+Estos resultados muestran una fuerte sensibilidad al momento de ingreso y a la inclusión, dentro de cada horizonte, de episodios positivos o negativos de gran magnitud ocurridos en momentos puntuales.
+
 """
     )
     st.caption(
@@ -47,16 +44,30 @@ histórica de ganancias y pérdidas.
     )
 
     tablas = filtrar_muestras_comunes(_leer_horizontes())
-    st.subheader("Instrumentos por horizonte")
-    figura = construir_boxplot_por_horizonte(tablas)
-    _, grafico, _ = st.columns([2, 6, 2])
+
+    st.subheader("Horizontes por instrumento")
+    figura = construir_boxplot_por_instrumento(tablas)
+    _, grafico, _ = st.columns([1, 6, 1])
     with grafico:
         st.pyplot(figura, width="stretch")
     plt.close(figura)
 
-    st.subheader("Horizontes por instrumento")
-    figura = construir_boxplot_por_instrumento(tablas)
-    _, grafico, _ = st.columns([2, 6, 2])
+    st.write(
+        """
+Los boxplots también ayudan a evitar una interpretación engañosa de los
+gráficos temporales. Las curvas de rendimientos de largo plazo parecen más
+suaves en parte porque las ventanas consecutivas comparten gran cantidad de
+meses entre sí. Por eso, una curva temporal menos oscilante no equivale por
+sí sola a menor riesgo. La distribución de resultados ofrece una perspectiva
+complementaria para observar tanto la variabilidad como la frecuencia
+histórica de ganancias y pérdidas.
+
+"""
+    )
+
+    st.subheader("Instrumentos por horizonte")
+    figura = construir_boxplot_por_horizonte(tablas)
+    _, grafico, _ = st.columns([1, 6, 1])
     with grafico:
         st.pyplot(figura, width="stretch")
     plt.close(figura)

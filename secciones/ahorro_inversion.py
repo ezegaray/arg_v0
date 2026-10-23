@@ -85,6 +85,9 @@ más largos los resultados se vuelven más equilibrados, pero tampoco aparece
 una garantía de preservación: a diez años, el 56% de las ventanas analizadas
 terminó con rendimiento real negativo.
 """,
+
+
+
     "Merval": """
 El Merval presenta una trayectoria real considerablemente más volátil que
 las alternativas de ahorro tradicionales. Desde el máximo relativo de 1997
@@ -100,21 +103,17 @@ Aproximadamente el 58% de las ventanas de cinco años y el 77% de las de diez
 años terminaron con rendimientos reales positivos. A diez años, la mediana
 del rendimiento real anualizado fue cercana al 2,8%.
 
-Esto no implica que extender el horizonte elimine el riesgo ni que todos
-los períodos largos hayan resultado favorables. El momento de entrada
-continúa siendo relevante y las ventanas móviles de largo plazo se
-superponen fuertemente entre sí. El gráfico permite observar, sin embargo,
-una diferencia respecto de alternativas como el plazo fijo: la fuerte
-variabilidad de corto plazo convivió históricamente con un predominio mucho
-mayor de resultados positivos en las inversiones sostenidas durante diez
-años.
+Esto no implica que extender el horizonte elimine el riesgo ni que todos los períodos largos hayan resultado favorables. El momento de entrada continúa siendo relevante y las ventanas móviles de largo plazo se superponen fuertemente entre sí. **Además, los resultados a diez años deben interpretarse teniendo en cuenta el período histórico disponible: al requerir diez años previos de información, la cantidad de ventanas observables es menor y una parte importante de ellas incorpora alguno de los ciclos de fuerte crecimiento que atravesó el índice. Por eso, el predominio de resultados positivos en este horizonte describe la muestra analizada y no necesariamente una regularidad general del Merval.** El gráfico permite observar, sin embargo, una diferencia respecto de alternativas como el plazo fijo: la fuerte variabilidad de corto plazo convivió históricamente con un predominio mucho mayor de resultados positivos en las inversiones sostenidas durante diez años.
 """,
+
+
+
     "S&P 500 en pesos": """
 El rendimiento del S&P 500 para un inversor argentino combina tres
 movimientos: la evolución del índice estadounidense en dólares, el tipo de
 cambio peso-dólar y la inflación local. Por ese motivo, la serie en pesos
-reales puede comportarse de manera muy diferente del índice observado
-directamente en Estados Unidos.
+reales puede comportarse de manera muy diferente del [índice observado
+directamente en Estados Unidos](?seccion=S%26P+500+%28USD%29).
 
 El episodio de 2002 permite verlo con claridad. Mientras el S&P 500 caía en
 dólares, la fuerte depreciación del peso produjo inicialmente un aumento
