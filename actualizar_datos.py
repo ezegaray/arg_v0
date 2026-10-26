@@ -25,6 +25,14 @@ carpeta_raw.mkdir(
     exist_ok=True,
 )
 
+FUENTES = (
+    "bcra",
+    "ipc",
+    "tasas",
+    "dolar_blue",
+    "dolar_ccl",
+    "bolsas",
+)
 
 
 # --------------------------------------------------
@@ -140,10 +148,11 @@ def actualizar_tas1():
         url,
         archivo_destino,
     )
+    procesar_tas1(archivo_destino)
 
     print(
         f"Archivo tasas BCRA actualizado: "
-        f"{archivo_destino}"
+        f"{carpeta_processed / 'tasa_plazo_fijo.csv'}"
     )
 
 
@@ -189,4 +198,59 @@ def procesar_tas1(archivo_origen):
     datos.to_csv(archivo_destino, index=False, date_format="%Y-%m-%d")
 
 
+def actualizar_todas(fuentes=None):
+    """Actualiza las fuentes seleccionadas; por defecto, todas las disponibles."""
+    funciones = {
+        "bcra": actualizar_bcra,
+        "ipc": actualizar_ipc,
+        "tasas": actualizar_tas1,
+        "dolar_blue": actualizar_ambito,
+        "dolar_ccl": actualizar_dolar_ccl,
+        "bolsas": actualizar_bolsas,
+    }
+    seleccionadas = FUENTES if fuentes is None else tuple(fuentes)
+    desconocidas = set(seleccionadas) - set(FUENTES)
+    if desconocidas:
+        raise ValueError(
+            f"Fuentes desconocidas: {', '.join(sorted(desconocidas))}. "
+            f"Opciones válidas: {', '.join(FUENTES)}."
+        )
 
+    errores = []
+    for fuente in seleccionadas:
+        print(f"Actualizando {fuente}...")
+        try:
+            funciones[fuente]()
+        except Exception as error:
+            errores.append((fuente, error))
+            print(f"Error al actualizar {fuente}: {error}")
+
+    if errores:
+        fallidas = ", ".join(fuente for fuente, _ in errores)
+        raise RuntimeError(f"No se pudieron actualizar estas fuentes: {fallidas}.")
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        description="Actualiza las fuentes de información del proyecto."
+    )
+    parser.add_argument(
+        "--fuentes",
+        nargs="+",
+        choices=FUENTES,
+        metavar="FUENTE",
+        help=(
+            "Fuentes a actualizar. Si se omite, se actualizan todas: "
+            + ", ".join(FUENTES)
+        ),
+    )
+    argumentos = parser.parse_args(argv)
+    try:
+        actualizar_todas(argumentos.fuentes)
+    except RuntimeError as error:
+        parser.exit(1, f"{error}\n")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
